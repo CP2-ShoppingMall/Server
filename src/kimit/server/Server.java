@@ -10,6 +10,7 @@ public class Server
 {
 	private final int Port;
 	private ArrayList<ServerThread> Clients;
+	private MemberDatabase MemberDB;
 
 	public Server(int port)
 	{
@@ -20,6 +21,7 @@ public class Server
 	public void start()
 	{
 		ServerSocket server;
+		MemberDB = new MemberDatabase("MemberDB");
 		try
 		{
 			server = new ServerSocket(Port);
@@ -46,7 +48,7 @@ public class Server
 
 			while (true)
 			{
-				ServerThread thread = new ServerThread(server.accept(), Clients);
+				ServerThread thread = new ServerThread(server.accept(), Clients, MemberDB);
 				Clients.add(thread);
 				thread.start();
 			}
@@ -59,6 +61,17 @@ public class Server
 		catch (IOException e)
 		{
 			e.printStackTrace();
+		}
+		finally
+		{
+			try
+			{
+				MemberDB.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 }
