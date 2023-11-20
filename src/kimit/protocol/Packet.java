@@ -1,4 +1,4 @@
-package kimit.packet;
+package kimit.protocol;
 
 import java.io.Serial;
 import java.io.Serializable;

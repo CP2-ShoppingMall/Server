@@ -2,6 +2,7 @@ package kimit.server;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class MemberDatabase
 {
@@ -15,22 +16,23 @@ public class MemberDatabase
 	public MemberDatabase(String path)
 	{
 		Path = path;
+		Members = new ArrayList<>();
 
 		try
 		{
 			File file = new File(Path);
 			if (!file.exists())
 				file.createNewFile();
-			FileOut = new FileOutputStream(Path);
+			FileOut = new FileOutputStream(Path, true);
 			FileIn = new FileInputStream(Path);
 			Out = new ObjectOutputStream(FileOut);
 			In = new ObjectInputStream(FileIn);
 
 			Members = (ArrayList<Member>) In.readObject();
 		}
-		catch (EOFException e)
+		catch (EOFException ignored)
 		{
-			Members = new ArrayList<>();
+
 		}
 		catch (IOException | ClassNotFoundException e)
 		{

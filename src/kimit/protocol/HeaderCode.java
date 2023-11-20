@@ -1,4 +1,4 @@
-package kimit.packet;
+package kimit.protocol;
 
 public enum HeaderCode
 {
@@ -6,5 +6,6 @@ public enum HeaderCode
 	LOGIN,
 	SUCCESS,
 	REGISTER_ERROR,
-	LOGIN_ERROR
+	LOGIN_ERROR,
+	SESSION_ERROR
 }
