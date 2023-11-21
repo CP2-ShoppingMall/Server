@@ -3,6 +3,7 @@ package kimit.server;
 import kimit.protocol.HeaderCode;
 import kimit.protocol.Packet;
 import kimit.protocol.RegisterLoginPacket;
+import org.jline.reader.LineReader;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -27,9 +28,7 @@ public class ServerThread extends Thread
 	@Override
 	public void run()
 	{
-		//System.out.println("Client " + ClientSocket.getInetAddress() + " is connected.");
-		Server.getConsole().writer().println("Client " + ClientSocket.getInetAddress() + " is connected.");
-		Server.getConsole().writer().flush();
+		Server.getWindow().log("Client " + ClientSocket.getInetAddress() + " is connected.");
 		try
 		{
 			Out = new ObjectOutputStream(ClientSocket.getOutputStream());
@@ -59,15 +58,21 @@ public class ServerThread extends Thread
 		}
 		finally
 		{
-			try
-			{
-				ClientSocket.close();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-			System.out.println("Client " + ClientSocket.getInetAddress() + " is disconnected.");
+			Server.getWindow().log("Client " + ClientSocket.getInetAddress() + " is disconnected.");
+		}
+	}
+
+	public void close()
+	{
+		try
+		{
+			In.close();
+			Out.close();
+			ClientSocket.close();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
 		}
 	}
 
@@ -79,7 +84,7 @@ public class ServerThread extends Thread
 			Member member = new Member(register.getID(), register.getPassword());
 			Server.getMemberDB().add(member);
 			Out.writeObject(new Packet(HeaderCode.SUCCESS));
-			System.out.println("Client " + ClientSocket.getInetAddress() + " has registered. ID : " + register.getID());
+			Server.getWindow().log("Client " + ClientSocket.getInetAddress() + " has registered. ID : " + register.getID());
 		}
 		else
 			Out.writeObject(new Packet(HeaderCode.REGISTER_ERROR));
@@ -94,7 +99,7 @@ public class ServerThread extends Thread
 		{
 			Server.getSessions().add(response.getPassword());
 			Out.writeObject(response);
-			System.out.println("Client " + ClientSocket.getInetAddress() + " has logged in. ID : " + member.getID() + ", Session : " + response.getPassword());
+			Server.getWindow().log("Client " + ClientSocket.getInetAddress() + " has logged in. ID : " + member.getID() + ", Session : " + response.getPassword());
 		}
 		else if (member == null || !member.getPassword().equals(login.getPassword()))
 			Out.writeObject(new Packet(HeaderCode.LOGIN_ERROR));

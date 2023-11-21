@@ -1,10 +1,5 @@
 package kimit.server;
 
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketException;
@@ -13,10 +8,11 @@ import java.util.ArrayList;
 public class Server
 {
 	private final int Port;
-	private Terminal Console;
+	private ServerSocket Socket;
 	private ArrayList<ServerThread> Clients;
 	private ArrayList<String> Sessions;
 	private MemberDatabase MemberDB;
+	private Window Window;
 
 	public Server(int port)
 	{
@@ -27,51 +23,28 @@ public class Server
 
 	public void start()
 	{
-		ServerSocket server;
+		Window = new Window(this);
 		MemberDB = new MemberDatabase("MemberDB");
 		try
 		{
-			Console = TerminalBuilder.builder().system(false).streams(System.in, System.out).build();
-			server = new ServerSocket(Port);
-
-			new Thread(() ->
-			{
-				while (true)
-				{
-					try
-					{
-						ServerThread thread = new ServerThread(server.accept(), this);
-						Clients.add(thread);
-						thread.start();
-					}
-					catch (SocketException e)
-					{
-						for (var loop : Clients)
-							loop.interrupt();
-					}
-					catch (IOException e)
-					{
-						e.printStackTrace();
-					}
-				}
-			}).start();
-
+			Socket = new ServerSocket(Port);
 			while (true)
 			{
-				// TODO : need to apply JLine.
-				LineReader reader = LineReaderBuilder.builder().terminal(Console).build();
-				String input = reader.readLine(">");
-				if (input.equals("stop"))
+				try
 				{
-					try
-					{
-						server.close();
-					}
-					catch (IOException e)
-					{
-						e.printStackTrace();
-					}
+					ServerThread thread = new ServerThread(Socket.accept(), this);
+					Clients.add(thread);
+					thread.start();
+				}
+				catch (SocketException e)
+				{
+					for (var loop : Clients)
+						loop.close();
 					break;
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
 				}
 			}
 		}
@@ -83,6 +56,7 @@ public class Server
 		{
 			try
 			{
+				Window.dispose();
 				MemberDB.close();
 			}
 			catch (IOException e)
@@ -92,9 +66,19 @@ public class Server
 		}
 	}
 
-	public Terminal getConsole()
+	public void execute(String command)
 	{
-		return Console;
+		if (command.equals("stop"))
+		{
+			try
+			{
+				Socket.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public ArrayList<ServerThread> getClients()
@@ -110,5 +94,10 @@ public class Server
 	public ArrayList<String> getSessions()
 	{
 		return Sessions;
+	}
+
+	public kimit.server.Window getWindow()
+	{
+		return Window;
 	}
 }
