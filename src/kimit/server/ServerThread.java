@@ -2,15 +2,14 @@ package kimit.server;
 
 import kimit.protocol.HeaderCode;
 import kimit.protocol.Packet;
+import kimit.protocol.ProductPacket;
 import kimit.protocol.RegisterLoginPacket;
-import org.jline.reader.LineReader;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
 
 public class ServerThread extends Thread
 {
@@ -34,7 +33,7 @@ public class ServerThread extends Thread
 			Out = new ObjectOutputStream(ClientSocket.getOutputStream());
 			In = new ObjectInputStream(ClientSocket.getInputStream());
 
-			while (!isInterrupted())
+			while (true)
 			{
 				Packet packet = ((Packet) In.readObject());
 				switch (packet.getHeader())
@@ -44,6 +43,9 @@ public class ServerThread extends Thread
 						break;
 					case LOGIN:
 						login(packet);
+						break;
+					case PRODUCT_LIST:
+						Out.writeObject(new ProductPacket(Server.getProductDB().getData()));
 						break;
 				}
 			}
@@ -79,7 +81,16 @@ public class ServerThread extends Thread
 	private void register(Packet packet) throws IOException
 	{
 		RegisterLoginPacket register = ((RegisterLoginPacket) packet);
-		if (Server.getMemberDB().getMember(register.getID()) == null)
+		boolean isExist = false;
+		for (var loop : Server.getMemberDB().getData())
+		{
+			if (loop.getID().equals(register.getID()))
+			{
+				isExist = true;
+				break;
+			}
+		}
+		if (!isExist)
 		{
 			Member member = new Member(register.getID(), register.getPassword());
 			Server.getMemberDB().add(member);
@@ -93,7 +104,15 @@ public class ServerThread extends Thread
 	private void login(Packet packet) throws IOException
 	{
 		RegisterLoginPacket login = ((RegisterLoginPacket) packet);
-		Member member = Server.getMemberDB().getMember(login.getID());
+		Member member = null;
+		for (var loop : Server.getMemberDB().getData())
+		{
+			if (loop.getID().equals(login.getID()))
+			{
+				member = loop;
+				break;
+			}
+		}
 		RegisterLoginPacket response = new RegisterLoginPacket(HeaderCode.SUCCESS, null, login.getID());
 		if (member != null && member.getPassword().equals(login.getPassword()) && !Server.getSessions().contains(response.getPassword()))
 		{

@@ -1,7 +1,5 @@
 package kimit.server;
 
-import kimit.server.Server;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -15,6 +13,14 @@ public class Window extends JFrame
 	public Window(Server server)
 	{
 		Server = server;
+		try
+		{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ignored)
+		{
+
+		}
 
 		setTitle("Server");
 		MainPanel = new JPanel(new BorderLayout());

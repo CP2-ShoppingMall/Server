@@ -2,13 +2,17 @@ package kimit.api;
 
 import kimit.protocol.HeaderCode;
 import kimit.protocol.Packet;
+import kimit.protocol.ProductPacket;
 import kimit.protocol.RegisterLoginPacket;
+import kimit.server.Product;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class Client
 {
@@ -46,18 +50,11 @@ public class Client
 		}
 	}
 
-	public void connect()
+	public void connect() throws IOException
 	{
-		try
-		{
-			Socket socket = new Socket(Address, Port);
-			Out = new ObjectOutputStream(socket.getOutputStream());
-			In = new ObjectInputStream(socket.getInputStream());
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		Socket socket = new Socket(Address, Port);
+		Out = new ObjectOutputStream(socket.getOutputStream());
+		In = new ObjectInputStream(socket.getInputStream());
 	}
 
 	public void register(String id, String password) throws ClientException
@@ -92,5 +89,23 @@ public class Client
 		{
 			e.printStackTrace();
 		}
+	}
+
+	public ArrayList<Product> product() throws ClientException
+	{
+		try
+		{
+			Out.writeObject(new Packet(HeaderCode.PRODUCT_LIST));
+			Packet response = read();
+			if (response.getHeader().equals(HeaderCode.PRODUCT_LIST))
+				return ((ProductPacket) response).getProducts();
+			else
+				throw new ClientException(response.getHeader(), "패킷 에러.");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

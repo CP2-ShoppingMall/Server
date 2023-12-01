@@ -3,7 +3,6 @@
     <output-path>$PROJECT_DIR$/out/artifacts/Server_jar</output-path>
     <root id="archive" name="Server.jar">
       <element id="module-output" name="Server" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jline/jline/3.23.0/jline-3.23.0.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

@@ -2,21 +2,20 @@ package kimit.server;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Scanner;
 
-public class MemberDatabase
+public class Database<T>
 {
 	private final String Path;
-	private ArrayList<Member> Members;
+	private ArrayList<T> Data;
 	private FileInputStream FileIn;
 	private FileOutputStream FileOut;
 	private ObjectInputStream In;
 	private ObjectOutputStream Out;
 
-	public MemberDatabase(String path)
+	public Database(String path)
 	{
 		Path = path;
-		Members = new ArrayList<>();
+		Data = new ArrayList<>();
 
 		try
 		{
@@ -28,7 +27,7 @@ public class MemberDatabase
 			Out = new ObjectOutputStream(FileOut);
 			In = new ObjectInputStream(FileIn);
 
-			Members = (ArrayList<Member>) In.readObject();
+			Data = ((ArrayList<T>) In.readObject());
 		}
 		catch (EOFException ignored)
 		{
@@ -40,10 +39,10 @@ public class MemberDatabase
 		}
 	}
 
-	public void add(Member member) throws IOException
+	public void add(T t) throws IOException
 	{
-		Members.add(member);
-		Out.writeObject(Members);
+		Data.add(t);
+		Out.writeObject(Data);
 	}
 
 	public void close() throws IOException
@@ -53,6 +52,7 @@ public class MemberDatabase
 			In.close();
 			FileIn.close();
 		}
+
 		if (Out != null && FileOut != null)
 		{
 			Out.close();
@@ -60,11 +60,8 @@ public class MemberDatabase
 		}
 	}
 
-	public Member getMember(String id)
+	public ArrayList<T> getData()
 	{
-		for (Member loop : Members)
-			if (loop.getID().equals(id))
-				return loop;
-		return null;
+		return (ArrayList<T>) Data.clone();
 	}
 }

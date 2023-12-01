@@ -11,7 +11,8 @@ public class Server
 	private ServerSocket Socket;
 	private ArrayList<ServerThread> Clients;
 	private ArrayList<String> Sessions;
-	private MemberDatabase MemberDB;
+	private Database<Member> MemberDB;
+	private Database<Product> ProductDB;
 	private Window Window;
 
 	public Server(int port)
@@ -24,7 +25,8 @@ public class Server
 	public void start()
 	{
 		Window = new Window(this);
-		MemberDB = new MemberDatabase("MemberDB");
+		MemberDB = new Database<>("MemberDB");
+		ProductDB = new Database<>("ProductDB");
 		try
 		{
 			Socket = new ServerSocket(Port);
@@ -58,6 +60,7 @@ public class Server
 			{
 				Window.dispose();
 				MemberDB.close();
+				ProductDB.close();
 			}
 			catch (IOException e)
 			{
@@ -79,6 +82,10 @@ public class Server
 				e.printStackTrace();
 			}
 		}
+		else if (command.equals("post"))
+		{
+			new PostDialog(Window, ProductDB);
+		}
 	}
 
 	public ArrayList<ServerThread> getClients()
@@ -86,9 +93,14 @@ public class Server
 		return Clients;
 	}
 
-	public MemberDatabase getMemberDB()
+	public Database<Member> getMemberDB()
 	{
 		return MemberDB;
+	}
+
+	public Database<Product> getProductDB()
+	{
+		return ProductDB;
 	}
 
 	public ArrayList<String> getSessions()
