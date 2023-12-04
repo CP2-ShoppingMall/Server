@@ -1,6 +1,7 @@
 package kimit.server;
 
 import java.awt.*;
+import java.text.DecimalFormat;
 
 public class Product
 {
@@ -25,6 +26,11 @@ public class Product
 	public int getPrice()
 	{
 		return Price;
+	}
+
+	public String getPriceText()
+	{
+		return new DecimalFormat("###,###").format(Price);
 	}
 
 	public String getDetail()
