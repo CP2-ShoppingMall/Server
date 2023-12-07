@@ -9,16 +9,16 @@ import java.io.IOException;
 
 public class PostDialog extends JDialog implements ActionListener
 {
-	private final Database<Product> ProductDB;
+	private final Server Server;
 	private JTextField Title;
 	private JTextField Price;
 	private JTextArea Detail;
 	private JTextField ImagePath;
 	private JButton ImageChoose, Post;
-	public PostDialog(JFrame frame, Database<Product> productDB)
+	public PostDialog(JFrame frame, Server server)
 	{
 		super(frame, "Post");
-		ProductDB = productDB;
+		Server = server;
 
 		Title = new JTextField(40);
 		Price = new JTextField(40);
@@ -63,7 +63,8 @@ public class PostDialog extends JDialog implements ActionListener
 			{
 				try
 				{
-					ProductDB.add(new Product(Title.getText(), Integer.parseInt(Price.getText()), Detail.getText(), new ImageIcon(ImagePath.getText()).getImage()));
+					Server.getProductDB().add(new Product(Title.getText(), Integer.parseInt(Price.getText()), Detail.getText(), new ImageIcon(ImagePath.getText())));
+					dispose();
 				}
 				catch (IOException ex)
 				{

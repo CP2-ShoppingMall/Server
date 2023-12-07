@@ -1,10 +1,8 @@
 package kimit.server;
 
-import kimit.protocol.HeaderCode;
-import kimit.protocol.Packet;
-import kimit.protocol.ProductPacket;
-import kimit.protocol.RegisterLoginPacket;
+import kimit.protocol.*;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -17,6 +15,8 @@ public class ServerThread extends Thread
 	private final Server Server;
 	private ObjectInputStream In;
 	private ObjectOutputStream Out;
+	private Member Member;
+	private String Session = null;
 
 	public ServerThread(Socket socket, Server server)
 	{
@@ -45,10 +45,23 @@ public class ServerThread extends Thread
 						login(packet);
 						break;
 					case PRODUCT_LIST:
-						Out.writeObject(new ProductPacket(Server.getProductDB().getData()));
+						Out.writeUnshared(new ProductListPacket(HeaderCode.PRODUCT_LIST, Server.getProductDB().getData())); // TODO : not equal.
+						break;
+					case POST_PRODUCT:
+						Server.getProductDB().add(((ProductPacket) packet).getProduct());
+						break;
+					case BASKET:
+						basket(packet);
+						break;
+					case PURCHASE:
+						purchase(packet);
 						break;
 				}
 			}
+		}
+		catch (EOFException e)
+		{
+			close();
 		}
 		catch (SocketException ignored)
 		{
@@ -60,6 +73,7 @@ public class ServerThread extends Thread
 		}
 		finally
 		{
+			Server.getSessions().removeIf(p -> p.equals(Session));
 			Server.getWindow().log("Client " + ClientSocket.getInetAddress() + " is disconnected.");
 		}
 	}
@@ -68,8 +82,10 @@ public class ServerThread extends Thread
 	{
 		try
 		{
-			In.close();
-			Out.close();
+			if (In != null)
+				In.close();
+			if (Out != null)
+				Out.close();
 			ClientSocket.close();
 		}
 		catch (IOException e)
@@ -113,16 +129,36 @@ public class ServerThread extends Thread
 				break;
 			}
 		}
-		RegisterLoginPacket response = new RegisterLoginPacket(HeaderCode.SUCCESS, null, login.getID());
+		RegisterLoginPacket response = new RegisterLoginPacket(HeaderCode.SUCCESS, login.getID(), member);
 		if (member != null && member.getPassword().equals(login.getPassword()) && !Server.getSessions().contains(response.getPassword()))
 		{
 			Server.getSessions().add(response.getPassword());
 			Out.writeObject(response);
+			Member = member;
+			Session = response.getPassword();
 			Server.getWindow().log("Client " + ClientSocket.getInetAddress() + " has logged in. ID : " + member.getID() + ", Session : " + response.getPassword());
 		}
 		else if (member == null || !member.getPassword().equals(login.getPassword()))
 			Out.writeObject(new Packet(HeaderCode.LOGIN_ERROR));
 		else if (Server.getSessions().contains(response.getPassword()))
 			Out.writeObject(new Packet(HeaderCode.SESSION_ERROR));
+	}
+
+	private void basket(Packet packet) throws IOException
+	{
+		ProductPacket product = ((ProductPacket) packet);
+		Server.getMemberDB().getData().removeIf(p -> p.equals(Member));
+		Member.getBasket().add(product.getProduct());
+		Server.getMemberDB().add(Member);
+		Out.writeObject(new MemberPacket(Member));
+	}
+
+	private void purchase(Packet packet) throws IOException
+	{
+		ProductListPacket productList = ((ProductListPacket) packet);
+		Server.getMemberDB().getData().removeIf(p -> p.equals(Member));
+		productList.getProducts().forEach(loop -> Member.getPurchase().add(loop));
+		Server.getMemberDB().add(Member);
+		Out.writeObject(new MemberPacket(Member));
 	}
 }

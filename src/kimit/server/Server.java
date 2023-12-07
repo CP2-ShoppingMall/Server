@@ -1,5 +1,7 @@
 package kimit.server;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketException;
@@ -24,12 +26,27 @@ public class Server
 
 	public void start()
 	{
-		Window = new Window(this);
 		MemberDB = new Database<>("MemberDB");
 		ProductDB = new Database<>("ProductDB");
 		try
 		{
 			Socket = new ServerSocket(Port);
+			Window = new Window(this);
+			Window.addWindowListener(new WindowAdapter()
+			{
+				@Override
+				public void windowClosing(WindowEvent e)
+				{
+					try
+					{
+						Socket.close();
+					}
+					catch (IOException ex)
+					{
+						ex.printStackTrace();
+					}
+				}
+			});
 			while (true)
 			{
 				try
@@ -84,8 +101,10 @@ public class Server
 		}
 		else if (command.equals("post"))
 		{
-			new PostDialog(Window, ProductDB);
+			new PostDialog(Window, this);
 		}
+		else if (command.equals("member"))
+			MemberDB.getData().forEach(loop -> Window.log("ID : " + loop.getID() + ", Password : " + loop.getPassword()));
 	}
 
 	public ArrayList<ServerThread> getClients()

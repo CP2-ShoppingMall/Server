@@ -1,16 +1,13 @@
 package kimit.api;
 
-import kimit.protocol.HeaderCode;
-import kimit.protocol.Packet;
-import kimit.protocol.ProductPacket;
-import kimit.protocol.RegisterLoginPacket;
+import kimit.protocol.*;
+import kimit.server.Member;
 import kimit.server.Product;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -21,12 +18,18 @@ public class Client
 	private ObjectOutputStream Out;
 	private ObjectInputStream In;
 	private String Session;
+	private Member Member;
 
 	public Client(String address, int port)
 	{
 		Address = address;
 		Port = port;
 		Session = null;
+	}
+
+	public Member getMember()
+	{
+		return Member;
 	}
 
 	private Packet read()
@@ -83,7 +86,10 @@ public class Client
 			else if (response.getHeader().equals(HeaderCode.SESSION_ERROR))
 				throw new ClientException(response.getHeader(), "이미 로그인되어 있는 세션이 존재합니다.");
 			else
+			{
 				Session = ((RegisterLoginPacket) response).getPassword();
+				Member = ((RegisterLoginPacket) response).getPayload();
+			}
 		}
 		catch (IOException e)
 		{
@@ -91,21 +97,61 @@ public class Client
 		}
 	}
 
-	public ArrayList<Product> product() throws ClientException
+	public ArrayList<Product> product()
 	{
 		try
 		{
 			Out.writeObject(new Packet(HeaderCode.PRODUCT_LIST));
 			Packet response = read();
 			if (response.getHeader().equals(HeaderCode.PRODUCT_LIST))
-				return ((ProductPacket) response).getProducts();
-			else
-				throw new ClientException(response.getHeader(), "패킷 에러.");
+				return ((ProductListPacket) response).getProducts();
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public void post(Product product)
+	{
+		try
+		{
+			Out.writeObject(new ProductPacket(HeaderCode.POST_PRODUCT, product));
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void basket(Product product)
+	{
+		try
+		{
+			Out.writeObject(new ProductPacket(HeaderCode.BASKET, product));
+			Packet response = read();
+			if (response.getHeader().equals(HeaderCode.MEMBER))
+				Member = ((MemberPacket) response).getMember();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void purchase(ArrayList<Product> products)
+	{
+		try
+		{
+			Out.writeObject(new ProductListPacket(HeaderCode.PURCHASE, products));
+			Packet response = read();
+			if (response.getHeader().equals(HeaderCode.MEMBER))
+				Member = ((MemberPacket) response).getMember();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 }

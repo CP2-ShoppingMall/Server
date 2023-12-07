@@ -1,5 +1,7 @@
 package kimit.protocol;
 
+import kimit.server.Member;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -8,6 +10,7 @@ public class RegisterLoginPacket extends Packet
 {
 	private final String ID;
 	private final String Password;
+	private Member Payload;
 
 	public RegisterLoginPacket(HeaderCode header, String id, String password)
 	{
@@ -27,6 +30,13 @@ public class RegisterLoginPacket extends Packet
 			e.printStackTrace();
 		}
 		Password = builder.toString();
+		Payload = null;
+	}
+
+	public RegisterLoginPacket(HeaderCode header, String id, Member payload)
+	{
+		this(header, null, id);
+		Payload = payload;
 	}
 
 	public String getID()
@@ -37,6 +47,11 @@ public class RegisterLoginPacket extends Packet
 	public String getPassword()
 	{
 		return Password;
+	}
+
+	public Member getPayload()
+	{
+		return Payload;
 	}
 
 	@Override

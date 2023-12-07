@@ -1,16 +1,20 @@
 package kimit.server;
 
-import java.awt.*;
+import javax.swing.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.text.DecimalFormat;
 
-public class Product
+public class Product implements Serializable
 {
+	@Serial
+	private static final long serialVersionUID = 1L;
 	private final String Title;
 	private final int Price;
 	private final String Detail;
-	private final Image Image;
+	private final ImageIcon Image;
 
-	public Product(String title, int price, String detail, Image image)
+	public Product(String title, int price, String detail, ImageIcon image)
 	{
 		Title = title;
 		Price = price;
@@ -38,7 +42,7 @@ public class Product
 		return Detail;
 	}
 
-	public java.awt.Image getImage()
+	public ImageIcon getImage()
 	{
 		return Image;
 	}

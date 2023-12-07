@@ -62,6 +62,6 @@ public class Database<T>
 
 	public ArrayList<T> getData()
 	{
-		return (ArrayList<T>) Data.clone();
+		return Data;
 	}
 }

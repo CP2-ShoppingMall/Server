@@ -2,20 +2,18 @@ package kimit.protocol;
 
 import kimit.server.Product;
 
-import java.util.ArrayList;
-
 public class ProductPacket extends Packet
 {
-	private final ArrayList<Product> Products;
+	private final Product Product;
 
-	public ProductPacket(ArrayList<Product> products)
+	public ProductPacket(HeaderCode header, Product product)
 	{
-		super(HeaderCode.PRODUCT_LIST);
-		Products = products;
+		super(header);
+		Product = product;
 	}
 
-	public ArrayList<Product> getProducts()
+	public kimit.server.Product getProduct()
 	{
-		return Products;
+		return Product;
 	}
 }
