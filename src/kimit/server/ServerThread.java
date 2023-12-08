@@ -36,6 +36,7 @@ public class ServerThread extends Thread
 			while (true)
 			{
 				Packet packet = ((Packet) In.readObject());
+				Out.reset();
 				switch (packet.getHeader())
 				{
 					case REGISTER:
@@ -45,7 +46,7 @@ public class ServerThread extends Thread
 						login(packet);
 						break;
 					case PRODUCT_LIST:
-						Out.writeUnshared(new ProductListPacket(HeaderCode.PRODUCT_LIST, Server.getProductDB().getData())); // TODO : not equal.
+						Out.writeObject(new ProductListPacket(HeaderCode.PRODUCT_LIST, Server.getProductDB().getData()));
 						break;
 					case POST_PRODUCT:
 						Server.getProductDB().add(((ProductPacket) packet).getProduct());
@@ -54,6 +55,7 @@ public class ServerThread extends Thread
 						basket(packet);
 						break;
 					case PURCHASE:
+					case PURCHASE_IN_BASKET:
 						purchase(packet);
 						break;
 				}
@@ -106,7 +108,7 @@ public class ServerThread extends Thread
 				break;
 			}
 		}
-		if (!isExist)
+		if (!isExist && !register.getID().isEmpty() && !register.getPassword().isEmpty())
 		{
 			Member member = new Member(register.getID(), register.getPassword());
 			Server.getMemberDB().add(member);
@@ -157,7 +159,21 @@ public class ServerThread extends Thread
 	{
 		ProductListPacket productList = ((ProductListPacket) packet);
 		Server.getMemberDB().getData().removeIf(p -> p.equals(Member));
-		productList.getProducts().forEach(loop -> Member.getPurchase().add(loop));
+		productList.getProducts().forEach(loop ->
+		{
+			Member.getPurchase().add(loop);
+			if (productList.getHeader().equals(HeaderCode.PURCHASE_IN_BASKET))
+			{
+				for (var loop2 : Member.getBasket())
+				{
+					if (loop.getTitle().equals(loop2.getTitle()) && loop.getPrice() == loop2.getPrice())
+					{
+						Member.getBasket().remove(loop2);
+						break;
+					}
+				}
+			}
+		});
 		Server.getMemberDB().add(Member);
 		Out.writeObject(new MemberPacket(Member));
 	}

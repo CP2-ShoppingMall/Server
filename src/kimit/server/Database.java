@@ -24,8 +24,8 @@ public class Database<T>
 				file.createNewFile();
 			FileOut = new FileOutputStream(Path, true);
 			FileIn = new FileInputStream(Path);
-			Out = new ObjectOutputStream(FileOut);
-			In = new ObjectInputStream(FileIn);
+			Out = new ObjectOutputStream(new BufferedOutputStream(FileOut));
+			In = new ObjectInputStream(new BufferedInputStream(FileIn));
 
 			Data = ((ArrayList<T>) In.readObject());
 		}
@@ -42,11 +42,13 @@ public class Database<T>
 	public void add(T t) throws IOException
 	{
 		Data.add(t);
+		Out.reset();
 		Out.writeObject(Data);
 	}
 
 	public void close() throws IOException
 	{
+		Out.writeObject(Data);
 		if (In != null && FileIn != null)
 		{
 			In.close();

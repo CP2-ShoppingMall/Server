@@ -154,4 +154,19 @@ public class Client
 			e.printStackTrace();
 		}
 	}
+
+	public void purchaseInBasket(ArrayList<Product> products)
+	{
+		try
+		{
+			Out.writeObject(new ProductListPacket(HeaderCode.PURCHASE_IN_BASKET, products));
+			Packet response = read();
+			if (response.getHeader().equals(HeaderCode.MEMBER))
+				Member = ((MemberPacket) response).getMember();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
 }
