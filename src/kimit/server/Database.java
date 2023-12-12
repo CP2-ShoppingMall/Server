@@ -3,7 +3,7 @@ package kimit.server;
 import java.io.*;
 import java.util.ArrayList;
 
-public class Database<T>
+public class Database<T extends Serializable>
 {
 	private final String Path;
 	private ArrayList<T> Data;

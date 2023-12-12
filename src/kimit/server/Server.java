@@ -17,7 +17,6 @@ public class Server
 	private Database<Member> MemberDB;
 	private Database<Product> ProductDB;
 	private Window Window;
-	private Thread CommandThread;
 
 	public Server(int port)
 	{
@@ -49,21 +48,6 @@ public class Server
 					}
 				}
 			});
-
-			CommandThread = new Thread(() ->
-			{
-				String line;
-				Scanner scanner = new Scanner(System.in);
-				while (true)
-				{
-					line = scanner.nextLine();
-					if (line.equals("hide"))
-						Window.setVisible(false);
-					else if (line.equals("show"))
-						Window.setVisible(true);
-				}
-			});
-			CommandThread.start();
 
 			while (true)
 			{
