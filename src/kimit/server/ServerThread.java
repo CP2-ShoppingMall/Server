@@ -50,6 +50,7 @@ public class ServerThread extends Thread
 						break;
 					case POST_PRODUCT:
 						Server.getProductDB().add(((ProductPacket) packet).getProduct());
+						Server.getWindow().log("Member " + Member.getID() + "(IP : " + ClientSocket.getInetAddress() + ") has posted product \"" + ((ProductPacket) packet).getProduct().getTitle() + "\".");
 						break;
 					case BASKET:
 						basket(packet);
@@ -153,6 +154,7 @@ public class ServerThread extends Thread
 		Member.getBasket().add(product.getProduct());
 		Server.getMemberDB().add(Member);
 		Out.writeObject(new MemberPacket(Member));
+		Server.getWindow().log("Member " + Member.getID() + "(IP : " + ClientSocket.getInetAddress() + ") has added product \"" + product.getProduct().getTitle() + "\" to basket.");
 	}
 
 	private void purchase(Packet packet) throws IOException
@@ -176,5 +178,6 @@ public class ServerThread extends Thread
 		});
 		Server.getMemberDB().add(Member);
 		Out.writeObject(new MemberPacket(Member));
+		Server.getWindow().log("Member " + Member.getID() + "(IP : " + ClientSocket.getInetAddress() + ") has purchased " + productList.getProducts().size() + " products. Total price : " + productList.getProducts().stream().mapToInt(Product::getPrice).sum());
 	}
 }

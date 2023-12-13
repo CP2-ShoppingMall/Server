@@ -28,6 +28,8 @@ public class Database<T extends Serializable>
 			In = new ObjectInputStream(new BufferedInputStream(FileIn));
 
 			Data = ((ArrayList<T>) In.readObject());
+
+			clearFile();
 		}
 		catch (EOFException ignored)
 		{
@@ -39,15 +41,22 @@ public class Database<T extends Serializable>
 		}
 	}
 
+	private void clearFile() throws IOException
+	{
+		FileOut = new FileOutputStream(Path, false);
+		Out = new ObjectOutputStream(new BufferedOutputStream(FileOut));
+	}
+
 	public void add(T t) throws IOException
 	{
 		Data.add(t);
-		Out.reset();
+		clearFile();
 		Out.writeObject(Data);
 	}
 
 	public void close() throws IOException
 	{
+		clearFile();
 		Out.writeObject(Data);
 		if (In != null && FileIn != null)
 		{
